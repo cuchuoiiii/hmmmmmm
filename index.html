@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Đập Chuột</title>
+  <title>Phòng thanh tẩy</title>
   <style>
     * {
       margin: 0;
@@ -29,14 +29,17 @@
       -webkit-touch-callout: none;
     }
 
+    body.level-2 {
+      background: linear-gradient(135deg, #2a1020 0%, #1a1028 50%, #0f1a30 100%);
+    }
+
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
     }
 
-    /* Chuột */
-    #mouse {
+    #target {
       position: absolute;
       left: 50%;
       top: 50%;
@@ -47,11 +50,10 @@
         left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
         top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
         transform 0.08s ease;
-      cursor: none;
       will-change: left, top;
     }
 
-    .mouse-img {
+    .target-img {
       height: 120px;
       width: auto;
       display: block;
@@ -62,49 +64,71 @@
     }
 
     @media (max-width: 768px) {
-      #mouse,
-      .mouse-img {
+      #target,
+      .target-img {
         height: 90px;
       }
     }
 
-    #mouse.hit {
+    #target.hit {
       transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(0.88) rotate(-6deg);
     }
 
-    #mouse.scurry {
-      animation: mouse-wiggle 0.45s ease;
+    #target.scurry {
+      animation: target-wiggle 0.45s ease;
     }
 
-    @keyframes mouse-wiggle {
+    @keyframes target-wiggle {
       0%, 100% { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)); }
       25%      { transform: translate3d(-50%, -52%, 0) scaleX(var(--flip, 1)) rotate(4deg); }
       50%      { transform: translate3d(-50%, -48%, 0) scaleX(var(--flip, 1)) rotate(-4deg); }
       75%      { transform: translate3d(-50%, -51%, 0) scaleX(var(--flip, 1)) rotate(2deg); }
     }
 
-    .scurry-dust {
-      position: fixed;
-      font-size: 14px;
-      pointer-events: none;
-      z-index: 8;
-      animation: dust-puff 0.5s ease-out forwards;
+    /* Level 2 — đấm nhau */
+    #target.level-2 {
+      transition: transform 0.12s ease;
     }
 
-    @keyframes dust-puff {
-      0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; }
-      100% { transform: translate(-50%, -80%) scale(1.2); opacity: 0; }
+    #target.level-2 .target-img {
+      height: 150px;
+      box-shadow: 0 8px 32px rgba(255, 50, 50, 0.25);
     }
 
-    /* Búa */
-    #hammer {
+    @media (max-width: 768px) {
+      #target.level-2 .target-img {
+        height: 120px;
+      }
+    }
+
+    #target.level-2.hit {
+      animation: punch-recoil 0.18s ease;
+    }
+
+    @keyframes punch-recoil {
+      0%, 100% { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)); }
+      40%      { transform: translate3d(-50%, -54%, 0) scaleX(var(--flip, 1)) scale(0.92) rotate(8deg); }
+    }
+
+    #target.level-2.counter {
+      animation: enemy-lunge 0.3s ease;
+    }
+
+    @keyframes enemy-lunge {
+      0%, 100% { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)); }
+      50%      { transform: translate3d(-50%, -42%, 0) scaleX(var(--flip, 1)) scale(1.08); }
+    }
+
+    .weapon {
       position: fixed;
-      width: 100px;
-      height: 100px;
       pointer-events: none;
       z-index: 100;
+    }
+
+    #hammer {
+      width: 100px;
+      height: 100px;
       transform-origin: 80% 80%;
-      will-change: transform;
     }
 
     #hammer.swing {
@@ -151,7 +175,27 @@
       transform-origin: top center;
     }
 
-    /* UI */
+    #fist {
+      font-size: 52px;
+      line-height: 1;
+      display: none;
+      transform-origin: center center;
+    }
+
+    #fist.show { display: block; }
+
+    #fist.punch {
+      animation: fist-punch 0.2s ease-out;
+    }
+
+    @keyframes fist-punch {
+      0%   { transform: scale(1); }
+      45%  { transform: scale(1.35) translateY(-12px); }
+      100% { transform: scale(1); }
+    }
+
+    .hidden { display: none !important; }
+
     #ui {
       position: fixed;
       top: 20px;
@@ -160,6 +204,13 @@
       text-align: center;
       z-index: 200;
       pointer-events: none;
+    }
+
+    #game-title {
+      font-size: 1.1rem;
+      color: rgba(255, 215, 0, 0.85);
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
     }
 
     #score {
@@ -173,6 +224,27 @@
       margin-top: 8px;
       color: rgba(255,255,255,0.6);
       font-size: 0.95rem;
+      padding: 0 16px;
+    }
+
+    #hp-bar {
+      display: none;
+      margin: 10px auto 0;
+      width: min(220px, 70vw);
+      height: 12px;
+      background: rgba(0,0,0,0.45);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255,80,80,0.4);
+    }
+
+    #hp-bar.show { display: block; }
+
+    #hp-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff3333, #ff8844);
+      transition: width 0.2s ease;
     }
 
     #version {
@@ -181,7 +253,6 @@
       font-size: 0.75rem;
     }
 
-    /* Hiệu ứng đập */
     .impact {
       position: fixed;
       width: 80px;
@@ -191,6 +262,12 @@
       pointer-events: none;
       z-index: 40;
       animation: impact-ring 0.4s ease-out forwards;
+    }
+
+    .impact.punch-hit {
+      border-color: #ff6b6b;
+      width: 60px;
+      height: 60px;
     }
 
     @keyframes impact-ring {
@@ -213,7 +290,19 @@
       100% { transform: translate(-50%, -150%); opacity: 0; }
     }
 
-    /* Thanh tẩy thành công */
+    .screen-flash {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 40, 40, 0.2);
+      pointer-events: none;
+      z-index: 300;
+      animation: flash-fade 0.35s ease-out forwards;
+    }
+
+    @keyframes flash-fade {
+      to { opacity: 0; }
+    }
+
     #victory {
       position: fixed;
       inset: 0;
@@ -351,19 +440,23 @@
 <body>
   <div id="game">
     <div id="ui">
+      <div id="game-title">Phòng thanh tẩy · Lv.1</div>
       <div id="score">Điểm: 0</div>
-      <div id="hint">phòng sám hối!</div>
-      <div id="version">v5</div>
+      <div id="hp-bar"><div id="hp-fill"></div></div>
+      <div id="hint">Phòng sám hối — đập nghiệp chướng!</div>
+      <div id="version">v6</div>
     </div>
 
-    <div id="mouse">
-      <img class="mouse-img" src="mouse.png" alt="Hoadai" draggable="false" />
+    <div id="target">
+      <img class="target-img" src="mouse.png" alt="Đối thủ" draggable="false" />
     </div>
 
-    <div id="hammer">
+    <div id="hammer" class="weapon">
       <div class="hammer-head"></div>
       <div class="hammer-handle"></div>
     </div>
+
+    <div id="fist" class="weapon">👊</div>
   </div>
 
   <div id="victory" aria-hidden="true">
@@ -376,42 +469,58 @@
     <div class="confetti-piece"></div>
     <div class="confetti-piece"></div>
     <div class="victory-card">
-      <div class="victory-icon">🙏</div>
-      <h1>Thanh tẩy thành công!</h1>
-      <p>Bạn đã giải trừ nghiệp chướng này.</p>
-      <p class="victory-sub">Phước lành gõ mõ về với bạn...</p>
-      <div class="victory-tap">Chạm để tiếp tục</div>
+      <div class="victory-icon" id="victory-icon">🙏</div>
+      <h1 id="victory-title">Thanh tẩy Level 1!</h1>
+      <p id="victory-desc">Bạn đã giải trừ nghiệp chướng cơ bản.</p>
+      <p class="victory-sub" id="victory-sub">Sẵn sàng đấm tay đôi chưa?</p>
+      <div class="victory-tap" id="victory-tap">Chạm để vào Level 2</div>
     </div>
   </div>
 
   <script>
     const hammer = document.getElementById("hammer");
-    const mouse = document.getElementById("mouse");
+    const fist = document.getElementById("fist");
+    const target = document.getElementById("target");
     const scoreEl = document.getElementById("score");
+    const hintEl = document.getElementById("hint");
+    const titleEl = document.getElementById("game-title");
+    const hpBar = document.getElementById("hp-bar");
+    const hpFill = document.getElementById("hp-fill");
     const victoryEl = document.getElementById("victory");
+    const victoryIcon = document.getElementById("victory-icon");
+    const victoryTitle = document.getElementById("victory-title");
+    const victoryDesc = document.getElementById("victory-desc");
+    const victorySub = document.getElementById("victory-sub");
+    const victoryTap = document.getElementById("victory-tap");
 
-    const SHOW_DUST = false;
     const WIN_SCORE = 10;
+    const ENEMY_MAX_HP = 100;
+    const PUNCH_DAMAGE = 10;
+    const COUNTER_EVERY = 4;
 
+    let level = 1;
     let score = 0;
+    let enemyHp = ENEMY_MAX_HP;
+    let punchCount = 0;
     let victoryShown = false;
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
+    let victoryMode = "level1";
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
     let isScurrying = false;
-    let hammerX = mouseX;
-    let hammerY = mouseY;
+    let weaponX = targetX;
+    let weaponY = targetY;
 
-    function setMousePosition(x, y) {
-      mouseX = x;
-      mouseY = y;
-      mouse.style.left = x + "px";
-      mouse.style.top = y + "px";
+    function setTargetPosition(x, y) {
+      targetX = x;
+      targetY = y;
+      target.style.left = x + "px";
+      target.style.top = y + "px";
     }
 
-    function randomMousePosition(fromX, fromY) {
+    function randomTargetPosition(fromX, fromY) {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const rect = mouse.getBoundingClientRect();
+      const rect = target.getBoundingClientRect();
       const padX = rect.width / 2 + 20;
       const padY = rect.height / 2 + 60;
       let x, y, tries = 0;
@@ -429,13 +538,13 @@
       return { x, y };
     }
 
-    function getMouseCenter() {
-      return { x: mouseX, y: mouseY };
+    function getTargetCenter() {
+      return { x: targetX, y: targetY };
     }
 
-    function isClickOnMouse(x, y) {
-      const rect = mouse.getBoundingClientRect();
-      const pad = 20;
+    function isHitOnTarget(x, y) {
+      const rect = target.getBoundingClientRect();
+      const pad = level === 2 ? 30 : 20;
       return (
         x >= rect.left - pad &&
         x <= rect.right + pad &&
@@ -444,112 +553,112 @@
       );
     }
 
-    function scurryMouseAway() {
-      if (isScurrying) return;
+    function scurryAway() {
+      if (isScurrying || level !== 1) return;
       isScurrying = true;
 
-      const { x: newX, y: newY } = randomMousePosition(mouseX, mouseY);
-      const flip = newX < mouseX ? -1 : 1;
-      mouse.style.setProperty("--flip", flip);
+      const { x: newX, y: newY } = randomTargetPosition(targetX, targetY);
+      const flip = newX < targetX ? -1 : 1;
+      target.style.setProperty("--flip", flip);
 
-      mouse.classList.add("scurry");
-      setMousePosition(newX, newY);
-
-      if (SHOW_DUST) {
-        const center = getMouseCenter();
-        for (let i = 0; i < 2; i++) {
-          const dust = document.createElement("div");
-          dust.className = "scurry-dust";
-          dust.textContent = "💨";
-          dust.style.left = (center.x + (Math.random() - 0.5) * 40) + "px";
-          dust.style.top = (center.y + (Math.random() - 0.5) * 20) + "px";
-          document.body.appendChild(dust);
-          setTimeout(() => dust.remove(), 500);
-        }
-      }
+      target.classList.add("scurry");
+      setTargetPosition(newX, newY);
 
       setTimeout(() => {
-        mouse.classList.remove("scurry");
+        target.classList.remove("scurry");
         isScurrying = false;
       }, 450);
     }
 
-    const startPos = randomMousePosition();
-    setMousePosition(startPos.x, startPos.y);
-
-    function moveHammer(x, y) {
-      hammerX = x;
-      hammerY = y;
-      hammer.style.left = (x - 50) + "px";
-      hammer.style.top = (y - 50) + "px";
+    function moveWeapon(x, y) {
+      weaponX = x;
+      weaponY = y;
+      const active = level === 1 ? hammer : fist;
+      active.style.left = (x - 50) + "px";
+      active.style.top = (y - 50) + "px";
     }
 
-    document.addEventListener("pointermove", (e) => {
-      if (e.pointerType === "mouse") moveHammer(e.clientX, e.clientY);
-    }, { passive: true });
-
-    document.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      moveHammer(e.clientX, e.clientY);
-
-      if (victoryShown) {
-        dismissVictory();
-        return;
-      }
-
-      swingHammer();
-
-      if (!isClickOnMouse(e.clientX, e.clientY)) return;
-
-      hammerHit(e.clientX, e.clientY);
-    }, { passive: false });
-
-    function swingHammer() {
-      hammer.classList.remove("swing");
-      void hammer.offsetWidth;
-      hammer.classList.add("swing");
+    function swingWeapon() {
+      const active = level === 1 ? hammer : fist;
+      active.classList.remove(level === 1 ? "swing" : "punch");
+      void active.offsetWidth;
+      active.classList.add(level === 1 ? "swing" : "punch");
     }
 
-    function hammerHit(x, y) {
-      const center = getMouseCenter();
-
-      mouse.classList.add("hit");
-      setTimeout(() => mouse.classList.remove("hit"), 150);
-
-      const ring = document.createElement("div");
-      ring.className = "impact";
-      ring.style.left = center.x + "px";
-      ring.style.top = center.y + "px";
-      document.body.appendChild(ring);
-      setTimeout(() => ring.remove(), 400);
-
-      const texts = ["Sống tệ nè!", "Nói đạo lí này mày!", "con lợn nhựa này!", "Chạy đi!"];
+    function showFloatText(x, y, texts) {
       const float = document.createElement("div");
       float.className = "floating-text";
       float.textContent = texts[Math.floor(Math.random() * texts.length)];
-      float.style.left = center.x + "px";
-      float.style.top = (center.y - 40) + "px";
+      float.style.left = x + "px";
+      float.style.top = (y - 40) + "px";
       document.body.appendChild(float);
       setTimeout(() => float.remove(), 800);
+    }
+
+    function showImpact(x, y, isPunch) {
+      const ring = document.createElement("div");
+      ring.className = "impact" + (isPunch ? " punch-hit" : "");
+      ring.style.left = x + "px";
+      ring.style.top = y + "px";
+      document.body.appendChild(ring);
+      setTimeout(() => ring.remove(), 400);
+    }
+
+    function hammerHit() {
+      const center = getTargetCenter();
+
+      target.classList.add("hit");
+      setTimeout(() => target.classList.remove("hit"), 150);
+      showImpact(center.x, center.y, false);
+      showFloatText(center.x, center.y, ["Sống tệ nè!", "Nói đạo lí này mày!", "Con lợn nhựa này!"]);
 
       score += 1;
       scoreEl.textContent = "Điểm: " + score;
-
-      scurryMouseAway();
+      scurryAway();
 
       if (score >= WIN_SCORE) {
-        showVictory();
+        showVictory("level1");
       }
     }
 
-    function showVictory() {
-      if (victoryShown) return;
-      victoryShown = true;
-      victoryEl.classList.add("show");
-      victoryEl.setAttribute("aria-hidden", "false");
-      mouse.style.visibility = "hidden";
-      hammer.style.visibility = "hidden";
+    function updateHpBar() {
+      hpFill.style.width = Math.max(0, (enemyHp / ENEMY_MAX_HP) * 100) + "%";
+    }
 
+    function enemyCounter() {
+      target.classList.add("counter");
+      setTimeout(() => target.classList.remove("counter"), 300);
+
+      const flash = document.createElement("div");
+      flash.className = "screen-flash";
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 350);
+
+      showFloatText(window.innerWidth / 2, window.innerHeight / 2 - 60, ["Đỡ đòn đi!", "Còn thiếu lắm!", "Yếu quá!"]);
+    }
+
+    function punchHit() {
+      const center = getTargetCenter();
+
+      target.classList.add("hit");
+      setTimeout(() => target.classList.remove("hit"), 180);
+      showImpact(center.x, center.y, true);
+      showFloatText(center.x, center.y, ["Đấm!", "Uất!", "Mạnh đấy!", "Trúng rồi!"]);
+
+      enemyHp = Math.max(0, enemyHp - PUNCH_DAMAGE);
+      updateHpBar();
+      punchCount += 1;
+
+      if (punchCount % COUNTER_EVERY === 0 && enemyHp > 0) {
+        setTimeout(enemyCounter, 200);
+      }
+
+      if (enemyHp <= 0) {
+        setTimeout(() => showVictory("final"), 300);
+      }
+    }
+
+    function resetConfetti() {
       document.querySelectorAll(".confetti-piece").forEach((el) => {
         el.style.animation = "none";
         void el.offsetHeight;
@@ -557,30 +666,134 @@
       });
     }
 
-    function dismissVictory() {
-      victoryShown = false;
+    function showVictory(mode) {
+      if (victoryShown) return;
+      victoryShown = true;
+      victoryMode = mode;
+
+      if (mode === "level1") {
+        victoryIcon.textContent = "🙏";
+        victoryTitle.textContent = "Thanh tẩy Level 1!";
+        victoryDesc.textContent = "Bạn đã giải trừ nghiệp chướng cơ bản.";
+        victorySub.textContent = "Giờ phải đấm tay đôi mới thanh tẩy hết được.";
+        victoryTap.textContent = "Chạm để vào Level 2";
+        target.style.visibility = "hidden";
+        hammer.style.visibility = "hidden";
+      } else {
+        victoryIcon.textContent = "✨";
+        victoryTitle.textContent = "Thanh tẩy hoàn tất!";
+        victoryDesc.textContent = "Nghiệp chướng đã bị hạ gục hoàn toàn.";
+        victorySub.textContent = "Phước lành gõ mõ về với bạn...";
+        victoryTap.textContent = "Chạm để chơi lại";
+        target.style.visibility = "hidden";
+        fist.classList.remove("show");
+      }
+
+      victoryEl.classList.add("show");
+      victoryEl.setAttribute("aria-hidden", "false");
+      resetConfetti();
+    }
+
+    function startLevel2() {
+      level = 2;
+      document.body.classList.add("level-2");
+      target.classList.add("level-2");
+      target.style.visibility = "";
+
+      hammer.classList.add("hidden");
+      fist.classList.add("show");
+
+      setTargetPosition(window.innerWidth / 2, window.innerHeight / 2);
+
+      enemyHp = ENEMY_MAX_HP;
+      punchCount = 0;
+      updateHpBar();
+
+      titleEl.textContent = "Phòng thanh tẩy · Lv.2";
+      scoreEl.textContent = "Đấm nhau!";
+      hpBar.classList.add("show");
+      hintEl.textContent = "Chạm trúng đối thủ để đấm!";
+    }
+
+    function resetToLevel1() {
+      level = 1;
       score = 0;
+      enemyHp = ENEMY_MAX_HP;
+      punchCount = 0;
+      document.body.classList.remove("level-2");
+      target.classList.remove("level-2");
+      target.style.visibility = "";
+
+      hammer.classList.remove("hidden");
+      hammer.style.visibility = "";
+      fist.classList.remove("show");
+
+      hpBar.classList.remove("show");
+      titleEl.textContent = "Phòng thanh tẩy · Lv.1";
       scoreEl.textContent = "Điểm: 0";
+      hintEl.textContent = "Phòng sám hối — đập nghiệp chướng!";
+
+      const pos = randomTargetPosition();
+      setTargetPosition(pos.x, pos.y);
+    }
+
+    function dismissVictory() {
       victoryEl.classList.remove("show");
       victoryEl.setAttribute("aria-hidden", "true");
-      mouse.style.visibility = "";
-      hammer.style.visibility = "";
-      const pos = randomMousePosition();
-      setMousePosition(pos.x, pos.y);
+      victoryShown = false;
+
+      if (victoryMode === "level1") {
+        startLevel2();
+      } else {
+        resetToLevel1();
+      }
     }
+
+    const startPos = randomTargetPosition();
+    setTargetPosition(startPos.x, startPos.y);
+
+    document.addEventListener("pointermove", (e) => {
+      if (e.pointerType === "mouse") moveWeapon(e.clientX, e.clientY);
+    }, { passive: true });
+
+    document.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      moveWeapon(e.clientX, e.clientY);
+
+      if (victoryShown) {
+        dismissVictory();
+        return;
+      }
+
+      swingWeapon();
+
+      if (!isHitOnTarget(e.clientX, e.clientY)) return;
+
+      if (level === 1) {
+        hammerHit();
+      } else {
+        punchHit();
+      }
+    }, { passive: false });
 
     window.addEventListener("resize", () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      const rect = mouse.getBoundingClientRect();
+
+      if (level === 2) {
+        setTargetPosition(w / 2, h / 2);
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
       const padX = rect.width / 2 + 20;
       const padY = rect.height / 2 + 60;
-      mouseX = Math.min(Math.max(mouseX, padX), w - padX);
-      mouseY = Math.min(Math.max(mouseY, padY), h - padY);
-      setMousePosition(mouseX, mouseY);
+      targetX = Math.min(Math.max(targetX, padX), w - padX);
+      targetY = Math.min(Math.max(targetY, padY), h - padY);
+      setTargetPosition(targetX, targetY);
     });
 
-    moveHammer(hammerX, hammerY);
+    moveWeapon(weaponX, weaponY);
   </script>
 </body>
 </html>
