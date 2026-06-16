@@ -435,6 +435,84 @@
       0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
       100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
     }
+
+    /* Finale — nền thiêng + sét */
+    #finale-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background-color: #1a1020;
+      background-image: url("https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZmhkMmo0c2t1eXd2MzEycHhwM3h4MnUxNXdyeDN5NnNrbzQ5ZzcyYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xUOwG3sgHkdqoy41wY/giphy.gif");
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+      pointer-events: none;
+    }
+
+    #finale-bg.show { opacity: 1; }
+
+    #lightning {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80px;
+      height: 0;
+      z-index: 55;
+      pointer-events: none;
+      opacity: 0;
+      filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 24px #ffeb3b);
+    }
+
+    #lightning.strike {
+      animation: bolt-strike 0.55s ease-out forwards;
+    }
+
+    @keyframes bolt-strike {
+      0%   { height: 0; opacity: 0; }
+      15%  { opacity: 1; }
+      30%  { opacity: 1; }
+      45%  { opacity: 0.4; }
+      60%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    #lightning path {
+      fill: #fffef5;
+      stroke: #ffe566;
+      stroke-width: 2;
+    }
+
+    body.finale-flash #game {
+      animation: screen-white-flash 0.55s ease-out;
+    }
+
+    @keyframes screen-white-flash {
+      0%, 100% { filter: brightness(1); }
+      25%, 55%  { filter: brightness(2.5); }
+      40%      { filter: brightness(1.6); }
+    }
+
+    #target.finale-victim {
+      z-index: 50;
+      transition: transform 0.3s ease, filter 0.3s ease, opacity 0.8s ease 0.4s;
+    }
+
+    #target.lightning-hit {
+      animation: victim-struck 0.6s ease forwards;
+    }
+
+    @keyframes victim-struck {
+      0%   { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(1); filter: brightness(1); }
+      20%  { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(1.1); filter: brightness(3); }
+      50%  { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(0.85) rotate(12deg); filter: brightness(2); }
+      100% { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(0.7) rotate(20deg); filter: brightness(0.4); opacity: 0.3; }
+    }
+
+    #ui.finale-hidden {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
   </style>
 </head>
 <body>
@@ -444,7 +522,7 @@
       <div id="score">Điểm: 0</div>
       <div id="hp-bar"><div id="hp-fill"></div></div>
       <div id="hint">Phòng sám hối — đập nghiệp chướng!</div>
-      <div id="version">v6</div>
+      <div id="version">v7</div>
     </div>
 
     <div id="target">
@@ -458,6 +536,11 @@
 
     <div id="fist" class="weapon">👊</div>
   </div>
+
+  <div id="finale-bg" aria-hidden="true"></div>
+  <svg id="lightning" viewBox="0 0 80 400" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M48 0 L28 170 L52 170 L18 400 L62 155 L38 155 Z" />
+  </svg>
 
   <div id="victory" aria-hidden="true">
     <div class="victory-bg"></div>
@@ -492,6 +575,9 @@
     const victoryDesc = document.getElementById("victory-desc");
     const victorySub = document.getElementById("victory-sub");
     const victoryTap = document.getElementById("victory-tap");
+    const finaleBg = document.getElementById("finale-bg");
+    const lightning = document.getElementById("lightning");
+    const uiEl = document.getElementById("ui");
 
     const WIN_SCORE = 10;
     const ENEMY_MAX_HP = 100;
@@ -503,6 +589,7 @@
     let enemyHp = ENEMY_MAX_HP;
     let punchCount = 0;
     let victoryShown = false;
+    let finaleSequence = false;
     let victoryMode = "level1";
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
@@ -654,8 +741,61 @@
       }
 
       if (enemyHp <= 0) {
-        setTimeout(() => showVictory("final"), 300);
+        setTimeout(() => playFinale(), 300);
       }
+    }
+
+    function playFinale() {
+      if (finaleSequence) return;
+      finaleSequence = true;
+
+      fist.classList.remove("show");
+      uiEl.classList.add("finale-hidden");
+      hpBar.classList.remove("show");
+      hintEl.textContent = "";
+
+      finaleBg.classList.add("show");
+      finaleBg.setAttribute("aria-hidden", "false");
+
+      target.style.visibility = "visible";
+      target.classList.add("finale-victim");
+      setTargetPosition(window.innerWidth / 2, window.innerHeight / 2);
+
+      setTimeout(strikeLightning, 1000);
+    }
+
+    function strikeLightning() {
+      const rect = target.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const boltHeight = rect.top + rect.height / 2;
+
+      lightning.style.left = (cx - 40) + "px";
+      lightning.style.height = boltHeight + "px";
+      lightning.classList.remove("strike");
+      void lightning.offsetWidth;
+      lightning.classList.add("strike");
+
+      document.body.classList.add("finale-flash");
+      setTimeout(() => document.body.classList.remove("finale-flash"), 600);
+
+      setTimeout(() => {
+        target.classList.add("lightning-hit");
+      }, 120);
+
+      setTimeout(() => showVictory("final"), 1600);
+    }
+
+    function clearFinale() {
+      finaleSequence = false;
+      finaleBg.classList.remove("show");
+      finaleBg.setAttribute("aria-hidden", "true");
+      lightning.classList.remove("strike");
+      lightning.style.height = "0";
+      target.classList.remove("finale-victim", "lightning-hit");
+      target.style.opacity = "";
+      target.style.filter = "";
+      uiEl.classList.remove("finale-hidden");
+      document.body.classList.remove("finale-flash");
     }
 
     function resetConfetti() {
@@ -667,9 +807,10 @@
     }
 
     function showVictory(mode) {
-      if (victoryShown) return;
+      if (victoryShown && mode !== "final") return;
       victoryShown = true;
       victoryMode = mode;
+      if (mode === "final") finaleSequence = false;
 
       if (mode === "level1") {
         victoryIcon.textContent = "🙏";
@@ -682,11 +823,10 @@
       } else {
         victoryIcon.textContent = "✨";
         victoryTitle.textContent = "Thanh tẩy hoàn tất!";
-        victoryDesc.textContent = "Nghiệp chướng đã bị hạ gục hoàn toàn.";
+        victoryDesc.textContent = "Thiên lôi giáng xuống — nghiệp chướng đã tiêu tan.";
         victorySub.textContent = "Phước lành gõ mõ về với bạn...";
         victoryTap.textContent = "Chạm để chơi lại";
         target.style.visibility = "hidden";
-        fist.classList.remove("show");
       }
 
       victoryEl.classList.add("show");
@@ -716,6 +856,7 @@
     }
 
     function resetToLevel1() {
+      clearFinale();
       level = 1;
       score = 0;
       enemyHp = ENEMY_MAX_HP;
@@ -759,6 +900,8 @@
     document.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       moveWeapon(e.clientX, e.clientY);
+
+      if (finaleSequence) return;
 
       if (victoryShown) {
         dismissVictory();
