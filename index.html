@@ -41,8 +41,7 @@
       left: 50%;
       top: 50%;
       transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1));
-      width: 180px;
-      height: 200px;
+      height: 120px;
       z-index: 10;
       transition:
         left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
@@ -52,15 +51,25 @@
       will-change: left, top;
     }
 
+    .mouse-img {
+      height: 120px;
+      width: auto;
+      display: block;
+      pointer-events: none;
+      -webkit-user-drag: none;
+      border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+
     @media (max-width: 768px) {
-      #mouse {
-        width: 140px;
-        height: 155px;
+      #mouse,
+      .mouse-img {
+        height: 90px;
       }
     }
 
     #mouse.hit {
-      transform: translate(-50%, -50%) scaleX(var(--flip, 1)) scale(0.88) rotate(-6deg);
+      transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)) scale(0.88) rotate(-6deg);
     }
 
     #mouse.scurry {
@@ -68,10 +77,10 @@
     }
 
     @keyframes mouse-wiggle {
-      0%, 100% { transform: translate(-50%, -50%) scaleX(var(--flip, 1)); }
-      25%      { transform: translate(-50%, -52%) scaleX(var(--flip, 1)) rotate(4deg); }
-      50%      { transform: translate(-50%, -48%) scaleX(var(--flip, 1)) rotate(-4deg); }
-      75%      { transform: translate(-50%, -51%) scaleX(var(--flip, 1)) rotate(2deg); }
+      0%, 100% { transform: translate3d(-50%, -50%, 0) scaleX(var(--flip, 1)); }
+      25%      { transform: translate3d(-50%, -52%, 0) scaleX(var(--flip, 1)) rotate(4deg); }
+      50%      { transform: translate3d(-50%, -48%, 0) scaleX(var(--flip, 1)) rotate(-4deg); }
+      75%      { transform: translate3d(-50%, -51%, 0) scaleX(var(--flip, 1)) rotate(2deg); }
     }
 
     .scurry-dust {
@@ -85,110 +94,6 @@
     @keyframes dust-puff {
       0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; }
       100% { transform: translate(-50%, -80%) scale(1.2); opacity: 0; }
-    }
-
-    .mouse-body {
-      position: absolute;
-      bottom: 30px;
-      left: 20px;
-      width: 140px;
-      height: 120px;
-      background: #b0b0b0;
-      border-radius: 50% 50% 45% 45%;
-      box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
-    }
-
-    .mouse-ear {
-      position: absolute;
-      width: 55px;
-      height: 55px;
-      background: #a0a0a0;
-      border-radius: 50%;
-      top: 0;
-    }
-
-    .mouse-ear.left { left: 15px; }
-    .mouse-ear.right { right: 15px; }
-
-    .mouse-ear-inner {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      background: #ffb6c1;
-      border-radius: 50%;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .mouse-face {
-      position: absolute;
-      bottom: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px;
-      height: 70px;
-    }
-
-    .mouse-eye {
-      position: absolute;
-      width: 18px;
-      height: 22px;
-      background: #222;
-      border-radius: 50%;
-      top: 10px;
-    }
-
-    .mouse-eye.left { left: 15px; }
-    .mouse-eye.right { right: 15px; }
-
-    .mouse-eye::after {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: white;
-      border-radius: 50%;
-      top: 4px;
-      left: 4px;
-    }
-
-    .mouse-nose {
-      position: absolute;
-      width: 16px;
-      height: 12px;
-      background: #ffb6c1;
-      border-radius: 50%;
-      bottom: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .mouse-whisker {
-      position: absolute;
-      width: 40px;
-      height: 2px;
-      background: #888;
-      bottom: 22px;
-    }
-
-    .mouse-whisker.l1 { left: -25px; transform: rotate(-5deg); }
-    .mouse-whisker.l2 { left: -25px; bottom: 16px; }
-    .mouse-whisker.l3 { left: -25px; bottom: 10px; transform: rotate(5deg); }
-    .mouse-whisker.r1 { right: -25px; transform: rotate(5deg); }
-    .mouse-whisker.r2 { right: -25px; bottom: 16px; }
-    .mouse-whisker.r3 { right: -25px; bottom: 10px; transform: rotate(-5deg); }
-
-    .mouse-tail {
-      position: absolute;
-      bottom: 60px;
-      right: -30px;
-      width: 80px;
-      height: 80px;
-      border: 6px solid transparent;
-      border-top: 6px solid #999;
-      border-radius: 50%;
-      transform: rotate(30deg);
     }
 
     /* Búa */
@@ -313,26 +218,12 @@
   <div id="game">
     <div id="ui">
       <div id="score">Điểm: 0</div>
-      <div id="hint">Chạm trúng chuột để đập — nó sẽ chạy trốn!</div>
-      <div id="version">v3</div>
+      <div id="hint">phòng sám hối!</div>
+      <div id="version">v4</div>
     </div>
 
     <div id="mouse">
-      <div class="mouse-ear left"><div class="mouse-ear-inner"></div></div>
-      <div class="mouse-ear right"><div class="mouse-ear-inner"></div></div>
-      <div class="mouse-body"></div>
-      <div class="mouse-face">
-        <div class="mouse-eye left"></div>
-        <div class="mouse-eye right"></div>
-        <div class="mouse-nose"></div>
-        <div class="mouse-whisker l1"></div>
-        <div class="mouse-whisker l2"></div>
-        <div class="mouse-whisker l3"></div>
-        <div class="mouse-whisker r1"></div>
-        <div class="mouse-whisker r2"></div>
-        <div class="mouse-whisker r3"></div>
-      </div>
-      <div class="mouse-tail"></div>
+      <img class="mouse-img" src="mouse.png" alt="Hoadai" draggable="false" />
     </div>
 
     <div id="hammer">
@@ -355,7 +246,6 @@
     let isScurrying = false;
     let hammerX = mouseX;
     let hammerY = mouseY;
-    const PADDING = isMobile ? 70 : 100;
 
     function setMousePosition(x, y) {
       mouseX = x;
@@ -367,11 +257,14 @@
     function randomMousePosition(fromX, fromY) {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      const rect = mouse.getBoundingClientRect();
+      const padX = rect.width / 2 + 20;
+      const padY = rect.height / 2 + 60;
       let x, y, tries = 0;
 
       do {
-        x = PADDING + Math.random() * (w - PADDING * 2);
-        y = PADDING + 60 + Math.random() * (h - PADDING * 2 - 60);
+        x = padX + Math.random() * (w - padX * 2);
+        y = padY + Math.random() * (h - padY * 2);
         tries++;
       } while (
         tries < 20 &&
@@ -470,7 +363,7 @@
       document.body.appendChild(ring);
       setTimeout(() => ring.remove(), 400);
 
-      const texts = ["Bốp!", "Đập!", "Ouch!", "Chạy đi!", "Whack!"];
+      const texts = ["Sống tệ nè!", "Nói đạo lí này mày!", "con lợn nhựa này!", "Chạy đi!"];
       const float = document.createElement("div");
       float.className = "floating-text";
       float.textContent = texts[Math.floor(Math.random() * texts.length)];
@@ -488,8 +381,11 @@
     window.addEventListener("resize", () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      mouseX = Math.min(Math.max(mouseX, PADDING), w - PADDING);
-      mouseY = Math.min(Math.max(mouseY, PADDING + 60), h - PADDING);
+      const rect = mouse.getBoundingClientRect();
+      const padX = rect.width / 2 + 20;
+      const padY = rect.height / 2 + 60;
+      mouseX = Math.min(Math.max(mouseX, padX), w - padX);
+      mouseY = Math.min(Math.max(mouseY, padY), h - padY);
       setMousePosition(mouseX, mouseY);
     });
 
