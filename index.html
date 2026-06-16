@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>Đập Chuột ⭐</title>
+  <title>Đập Chuột</title>
   <style>
     * {
       margin: 0;
@@ -243,15 +243,6 @@
       transform-origin: top center;
     }
 
-    #stars-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 50;
-    }
-
     /* UI */
     #ui {
       position: fixed;
@@ -312,7 +303,7 @@
 <body>
   <div id="game">
     <div id="ui">
-      <div id="score">⭐ 0</div>
+      <div id="score">Điểm: 0</div>
       <div id="hint">Click trúng chuột để đập — nó sẽ chạy trốn!</div>
     </div>
 
@@ -338,40 +329,23 @@
       <div class="hammer-head"></div>
       <div class="hammer-handle"></div>
     </div>
-
-    <canvas id="stars-canvas"></canvas>
   </div>
 
   <script>
     const hammer = document.getElementById("hammer");
     const mouse = document.getElementById("mouse");
     const scoreEl = document.getElementById("score");
-    const canvas = document.getElementById("stars-canvas");
-    const ctx = canvas.getContext("2d", { alpha: true });
 
     const isMobile = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
-    const MAX_STARS = isMobile ? 20 : 40;
-    const STAR_PER_HIT = isMobile ? [3, 5] : [5, 10];
     const SHOW_DUST = !isMobile;
 
     let score = 0;
-    let stars = [];
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
     let isScurrying = false;
     let hammerX = mouseX;
     let hammerY = mouseY;
     const PADDING = isMobile ? 70 : 100;
-    const STAR_EMOJIS = ["⭐", "🌟", "✨", "💫", "⚡"];
-
-    function resizeCanvas() {
-      const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-
-    resizeCanvas();
 
     function setMousePosition(x, y) {
       mouseX = x;
@@ -486,7 +460,7 @@
       document.body.appendChild(ring);
       setTimeout(() => ring.remove(), 400);
 
-      const texts = ["Bốp!", "Đập!", "Ouch!", "Sao rồi!", "Chạy đi!"];
+      const texts = ["Bốp!", "Đập!", "Ouch!", "Chạy đi!", "Whack!"];
       const float = document.createElement("div");
       float.className = "floating-text";
       float.textContent = texts[Math.floor(Math.random() * texts.length)];
@@ -495,19 +469,13 @@
       document.body.appendChild(float);
       setTimeout(() => float.remove(), 800);
 
-      const count = STAR_PER_HIT[0] + Math.floor(Math.random() * (STAR_PER_HIT[1] - STAR_PER_HIT[0] + 1));
-      for (let i = 0; i < count; i++) {
-        spawnStar(center.x, center.y);
-      }
-
-      score += count;
-      scoreEl.textContent = "⭐ " + score;
+      score += 1;
+      scoreEl.textContent = "Điểm: " + score;
 
       scurryMouseAway();
     }
 
     window.addEventListener("resize", () => {
-      resizeCanvas();
       const w = window.innerWidth;
       const h = window.innerHeight;
       mouseX = Math.min(Math.max(mouseX, PADDING), w - PADDING);
@@ -515,74 +483,7 @@
       setMousePosition(mouseX, mouseY);
     });
 
-    function spawnStar(x, y) {
-      if (stars.length >= MAX_STARS) stars.shift();
-
-      const angle = Math.random() * Math.PI * 2;
-      const speed = isMobile ? 2 + Math.random() * 5 : 3 + Math.random() * 8;
-
-      stars.push({
-        emoji: STAR_EMOJIS[Math.floor(Math.random() * STAR_EMOJIS.length)],
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        rotation: Math.random() * 360,
-        rotSpeed: (Math.random() - 0.5) * 8,
-        size: isMobile ? 16 + Math.random() * 12 : 18 + Math.random() * 20,
-        life: 1,
-        decay: isMobile ? 0.012 : 0.006,
-      });
-    }
-
-    function updateStars() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const maxSpeed = isMobile ? 8 : 12;
-      const half = 16;
-
-      ctx.clearRect(0, 0, w, h);
-
-      const next = [];
-      for (let i = 0; i < stars.length; i++) {
-        const s = stars[i];
-        s.x += s.vx;
-        s.y += s.vy;
-        s.rotation += s.rotSpeed;
-        s.life -= s.decay;
-
-        if (s.x < half) { s.x = half; s.vx = Math.abs(s.vx) * 0.85; }
-        else if (s.x > w - half) { s.x = w - half; s.vx = -Math.abs(s.vx) * 0.85; }
-        if (s.y < half) { s.y = half; s.vy = Math.abs(s.vy) * 0.85; }
-        else if (s.y > h - half) { s.y = h - half; s.vy = -Math.abs(s.vy) * 0.85; }
-
-        const spd = Math.hypot(s.vx, s.vy);
-        if (spd > maxSpeed) {
-          s.vx = (s.vx / spd) * maxSpeed;
-          s.vy = (s.vy / spd) * maxSpeed;
-        }
-
-        if (s.life > 0) {
-          ctx.save();
-          ctx.globalAlpha = s.life;
-          ctx.translate(s.x, s.y);
-          ctx.rotate((s.rotation * Math.PI) / 180);
-          ctx.scale(s.life, s.life);
-          ctx.font = `${s.size}px serif`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(s.emoji, 0, 0);
-          ctx.restore();
-          next.push(s);
-        }
-      }
-      stars = next;
-
-      requestAnimationFrame(updateStars);
-    }
-
     moveHammer(hammerX, hammerY);
-    updateStars();
   </script>
 </body>
 </html>
