@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đập Chuột ⭐</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      height: 100vh;
+      cursor: none;
+    }
+
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Chuột */
+    #mouse {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scaleX(var(--flip, 1));
+      width: 180px;
+      height: 200px;
+      z-index: 10;
+      transition:
+        left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.08s ease;
+      cursor: none;
+    }
+
+    #mouse.hit {
+      transform: translate(-50%, -50%) scaleX(var(--flip, 1)) scale(0.88) rotate(-6deg);
+    }
+
+    #mouse.scurry {
+      animation: mouse-wiggle 0.45s ease;
+    }
+
+    @keyframes mouse-wiggle {
+      0%, 100% { transform: translate(-50%, -50%) scaleX(var(--flip, 1)); }
+      25%      { transform: translate(-50%, -52%) scaleX(var(--flip, 1)) rotate(4deg); }
+      50%      { transform: translate(-50%, -48%) scaleX(var(--flip, 1)) rotate(-4deg); }
+      75%      { transform: translate(-50%, -51%) scaleX(var(--flip, 1)) rotate(2deg); }
+    }
+
+    .scurry-dust {
+      position: fixed;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 8;
+      animation: dust-puff 0.5s ease-out forwards;
+    }
+
+    @keyframes dust-puff {
+      0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; }
+      100% { transform: translate(-50%, -80%) scale(1.2); opacity: 0; }
+    }
+
+    .mouse-body {
+      position: absolute;
+      bottom: 30px;
+      left: 20px;
+      width: 140px;
+      height: 120px;
+      background: #b0b0b0;
+      border-radius: 50% 50% 45% 45%;
+      box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2);
+    }
+
+    .mouse-ear {
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      background: #a0a0a0;
+      border-radius: 50%;
+      top: 0;
+    }
+
+    .mouse-ear.left { left: 15px; }
+    .mouse-ear.right { right: 15px; }
+
+    .mouse-ear-inner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: #ffb6c1;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .mouse-face {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 70px;
+    }
+
+    .mouse-eye {
+      position: absolute;
+      width: 18px;
+      height: 22px;
+      background: #222;
+      border-radius: 50%;
+      top: 10px;
+    }
+
+    .mouse-eye.left { left: 15px; }
+    .mouse-eye.right { right: 15px; }
+
+    .mouse-eye::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      top: 4px;
+      left: 4px;
+    }
+
+    .mouse-nose {
+      position: absolute;
+      width: 16px;
+      height: 12px;
+      background: #ffb6c1;
+      border-radius: 50%;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .mouse-whisker {
+      position: absolute;
+      width: 40px;
+      height: 2px;
+      background: #888;
+      bottom: 22px;
+    }
+
+    .mouse-whisker.l1 { left: -25px; transform: rotate(-5deg); }
+    .mouse-whisker.l2 { left: -25px; bottom: 16px; }
+    .mouse-whisker.l3 { left: -25px; bottom: 10px; transform: rotate(5deg); }
+    .mouse-whisker.r1 { right: -25px; transform: rotate(5deg); }
+    .mouse-whisker.r2 { right: -25px; bottom: 16px; }
+    .mouse-whisker.r3 { right: -25px; bottom: 10px; transform: rotate(-5deg); }
+
+    .mouse-tail {
+      position: absolute;
+      bottom: 60px;
+      right: -30px;
+      width: 80px;
+      height: 80px;
+      border: 6px solid transparent;
+      border-top: 6px solid #999;
+      border-radius: 50%;
+      transform: rotate(30deg);
+    }
+
+    /* Búa */
+    #hammer {
+      position: fixed;
+      width: 100px;
+      height: 100px;
+      pointer-events: none;
+      z-index: 100;
+      transform-origin: 80% 80%;
+      transition: transform 0.1s ease;
+    }
+
+    #hammer.swing {
+      animation: hammer-swing 0.25s ease-out;
+    }
+
+    @keyframes hammer-swing {
+      0%   { transform: rotate(0deg) scale(1); }
+      40%  { transform: rotate(-55deg) scale(1.15); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .hammer-head {
+      position: absolute;
+      top: 0;
+      left: 10px;
+      width: 70px;
+      height: 45px;
+      background: linear-gradient(180deg, #8b4513, #5c2e0a);
+      border-radius: 8px;
+      box-shadow: 2px 4px 8px rgba(0,0,0,0.4);
+    }
+
+    .hammer-head::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 5px;
+      right: 5px;
+      height: 8px;
+      background: #a0522d;
+      border-radius: 4px;
+    }
+
+    .hammer-handle {
+      position: absolute;
+      bottom: 0;
+      left: 35px;
+      width: 14px;
+      height: 60px;
+      background: linear-gradient(90deg, #c4a35a, #8b6914);
+      border-radius: 4px;
+      transform: rotate(15deg);
+      transform-origin: top center;
+    }
+
+    /* Sao bay */
+    .star {
+      position: fixed;
+      font-size: 28px;
+      pointer-events: none;
+      z-index: 50;
+      filter: drop-shadow(0 0 6px gold);
+      will-change: transform;
+    }
+
+    /* UI */
+    #ui {
+      position: fixed;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    #score {
+      font-size: 2rem;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      font-weight: bold;
+    }
+
+    #hint {
+      margin-top: 8px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.95rem;
+    }
+
+    /* Hiệu ứng đập */
+    .impact {
+      position: fixed;
+      width: 80px;
+      height: 80px;
+      border: 4px solid #ffd700;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 40;
+      animation: impact-ring 0.4s ease-out forwards;
+    }
+
+    @keyframes impact-ring {
+      0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+
+    .floating-text {
+      position: fixed;
+      color: #ff6b9d;
+      font-size: 1.4rem;
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 60;
+      animation: float-up 0.8s ease-out forwards;
+    }
+
+    @keyframes float-up {
+      0%   { transform: translate(-50%, -50%); opacity: 1; }
+      100% { transform: translate(-50%, -150%); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="ui">
+      <div id="score">⭐ 0</div>
+      <div id="hint">Click trúng chuột để đập — nó sẽ chạy trốn!</div>
+    </div>
+
+    <div id="mouse">
+      <div class="mouse-ear left"><div class="mouse-ear-inner"></div></div>
+      <div class="mouse-ear right"><div class="mouse-ear-inner"></div></div>
+      <div class="mouse-body"></div>
+      <div class="mouse-face">
+        <div class="mouse-eye left"></div>
+        <div class="mouse-eye right"></div>
+        <div class="mouse-nose"></div>
+        <div class="mouse-whisker l1"></div>
+        <div class="mouse-whisker l2"></div>
+        <div class="mouse-whisker l3"></div>
+        <div class="mouse-whisker r1"></div>
+        <div class="mouse-whisker r2"></div>
+        <div class="mouse-whisker r3"></div>
+      </div>
+      <div class="mouse-tail"></div>
+    </div>
+
+    <div id="hammer">
+      <div class="hammer-head"></div>
+      <div class="hammer-handle"></div>
+    </div>
+  </div>
+
+  <script>
+    const hammer = document.getElementById("hammer");
+    const mouse = document.getElementById("mouse");
+    const scoreEl = document.getElementById("score");
+
+    let score = 0;
+    let stars = [];
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let isScurrying = false;
+    const MOUSE_W = 180;
+    const MOUSE_H = 200;
+    const PADDING = 100;
+    const STAR_EMOJIS = ["⭐", "🌟", "✨", "💫", "⚡"];
+
+    function setMousePosition(x, y) {
+      mouseX = x;
+      mouseY = y;
+      mouse.style.left = x + "px";
+      mouse.style.top = y + "px";
+    }
+
+    function randomMousePosition(fromX, fromY) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      let x, y, tries = 0;
+
+      do {
+        x = PADDING + Math.random() * (w - PADDING * 2);
+        y = PADDING + 60 + Math.random() * (h - PADDING * 2 - 60);
+        tries++;
+      } while (
+        tries < 20 &&
+        fromX !== undefined &&
+        Math.hypot(x - fromX, y - fromY) < Math.min(w, h) * 0.25
+      );
+
+      return { x, y };
+    }
+
+    function getMouseCenter() {
+      return { x: mouseX, y: mouseY };
+    }
+
+    function isClickOnMouse(x, y) {
+      const rect = mouse.getBoundingClientRect();
+      const pad = 20;
+      return (
+        x >= rect.left - pad &&
+        x <= rect.right + pad &&
+        y >= rect.top - pad &&
+        y <= rect.bottom + pad
+      );
+    }
+
+    function scurryMouseAway() {
+      if (isScurrying) return;
+      isScurrying = true;
+
+      const { x: newX, y: newY } = randomMousePosition(mouseX, mouseY);
+      const flip = newX < mouseX ? -1 : 1;
+      mouse.style.setProperty("--flip", flip);
+
+      mouse.classList.add("scurry");
+      setMousePosition(newX, newY);
+
+      const center = getMouseCenter();
+      for (let i = 0; i < 3; i++) {
+        const dust = document.createElement("div");
+        dust.className = "scurry-dust";
+        dust.textContent = "💨";
+        dust.style.left = (center.x + (Math.random() - 0.5) * 40) + "px";
+        dust.style.top = (center.y + (Math.random() - 0.5) * 20) + "px";
+        document.body.appendChild(dust);
+        setTimeout(() => dust.remove(), 500);
+      }
+
+      setTimeout(() => {
+        mouse.classList.remove("scurry");
+        isScurrying = false;
+      }, 450);
+    }
+
+    const startPos = randomMousePosition();
+    setMousePosition(startPos.x, startPos.y);
+
+    document.addEventListener("mousemove", (e) => {
+      hammer.style.left = (e.clientX - 50) + "px";
+      hammer.style.top = (e.clientY - 50) + "px";
+    });
+
+    document.addEventListener("click", (e) => {
+      swingHammer();
+
+      if (!isClickOnMouse(e.clientX, e.clientY)) return;
+
+      hammerHit(e.clientX, e.clientY);
+    });
+
+    function swingHammer() {
+      hammer.classList.remove("swing");
+      void hammer.offsetWidth;
+      hammer.classList.add("swing");
+    }
+
+    function hammerHit(x, y) {
+      const center = getMouseCenter();
+
+      mouse.classList.add("hit");
+      setTimeout(() => mouse.classList.remove("hit"), 150);
+
+      const ring = document.createElement("div");
+      ring.className = "impact";
+      ring.style.left = center.x + "px";
+      ring.style.top = center.y + "px";
+      document.body.appendChild(ring);
+      setTimeout(() => ring.remove(), 400);
+
+      const texts = ["Bốp!", "Đập!", "Ouch!", "Sao rồi!", "Chạy đi!"];
+      const float = document.createElement("div");
+      float.className = "floating-text";
+      float.textContent = texts[Math.floor(Math.random() * texts.length)];
+      float.style.left = center.x + "px";
+      float.style.top = (center.y - 40) + "px";
+      document.body.appendChild(float);
+      setTimeout(() => float.remove(), 800);
+
+      const count = 5 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < count; i++) {
+        spawnStar(center.x, center.y);
+      }
+
+      score += count;
+      scoreEl.textContent = "⭐ " + score;
+
+      scurryMouseAway();
+    }
+
+    window.addEventListener("resize", () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      mouseX = Math.min(Math.max(mouseX, PADDING), w - PADDING);
+      mouseY = Math.min(Math.max(mouseY, PADDING + 60), h - PADDING);
+      setMousePosition(mouseX, mouseY);
+    });
+
+    function spawnStar(x, y) {
+      const el = document.createElement("div");
+      el.className = "star";
+      el.textContent = STAR_EMOJIS[Math.floor(Math.random() * STAR_EMOJIS.length)];
+
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 3 + Math.random() * 8;
+      const size = 18 + Math.random() * 20;
+      el.style.fontSize = size + "px";
+
+      const star = {
+        el,
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        rotation: Math.random() * 360,
+        rotSpeed: (Math.random() - 0.5) * 15,
+        life: 1,
+        decay: 0.003 + Math.random() * 0.005,
+      };
+
+      document.body.appendChild(el);
+      stars.push(star);
+    }
+
+    function updateStars() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      stars = stars.filter((s) => {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vx += (Math.random() - 0.5) * 0.8;
+        s.vy += (Math.random() - 0.5) * 0.8;
+        s.rotation += s.rotSpeed;
+        s.life -= s.decay;
+
+        // Nảy tường
+        const half = 20;
+        if (s.x < half) { s.x = half; s.vx = Math.abs(s.vx) * 0.9; }
+        if (s.x > w - half) { s.x = w - half; s.vx = -Math.abs(s.vx) * 0.9; }
+        if (s.y < half) { s.y = half; s.vy = Math.abs(s.vy) * 0.9; }
+        if (s.y > h - half) { s.y = h - half; s.vy = -Math.abs(s.vy) * 0.9; }
+
+        // Giới hạn tốc độ
+        const maxSpeed = 12;
+        const spd = Math.hypot(s.vx, s.vy);
+        if (spd > maxSpeed) {
+          s.vx = (s.vx / spd) * maxSpeed;
+          s.vy = (s.vy / spd) * maxSpeed;
+        }
+
+        s.el.style.left = (s.x - half) + "px";
+        s.el.style.top = (s.y - half) + "px";
+        s.el.style.transform = `rotate(${s.rotation}deg) scale(${s.life})`;
+        s.el.style.opacity = s.life;
+
+        if (s.life <= 0) {
+          s.el.remove();
+          return false;
+        }
+        return true;
+      });
+
+      requestAnimationFrame(updateStars);
+    }
+
+    updateStars();
+  </script>
+</body>
+</html>
